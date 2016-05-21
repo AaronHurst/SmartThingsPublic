@@ -17,6 +17,11 @@
  *  Sends a message and (optionally) turns on or blinks a light to indicate that laundry is done.
  *
  *  Date: 2013-02-21
+ 
+ *  Modifications 05-21-2016
+ *  Author: KCITCO.com
+ *  Updated Notification sending to work with sendNotification() function. 
+ *  Updated minute to Milisecond conversion code. Previous version would not accept user input values. 
  */
 
 definition(
@@ -89,12 +94,12 @@ def accelerationInactiveHandler(evt) {
 def checkRunning() {
 	log.trace "checkRunning()"
 	if (state.isRunning) {
-		def fillTimeMsec = fillTime ? fillTime * 60000 : 300000
+		def fillTimeMsec = fillTime * 60000 
 		def sensorStates = sensor1.statesSince("acceleration", new Date((now() - fillTimeMsec) as Long))
 
 		if (!sensorStates.find{it.value == "active"}) {
 
-			def cycleTimeMsec = cycleTime ? cycleTime * 60000 : 600000
+			def cycleTimeMsec = cycleTime * 60000
 			def duration = now() - state.startedAt
 			if (duration - fillTimeMsec > cycleTimeMsec) {
 				log.debug "Sending notification"
@@ -108,9 +113,9 @@ def checkRunning() {
                 else {
 
                     if (phone) {
-                        sendSms phone, msg
+                        sendNotification(msg, [method: "phone", phone: phone])
                     } else {
-                        sendPush msg
+                        sendNotification(msg, [method: "push"])
                     }
 
                 }
